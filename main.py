@@ -3,38 +3,46 @@ and will print recursively all the files inside that dir"""
 
 import os
 import argparse
-import fnmatch
 
-def print_dir():
 
-    running = True
-    while running:
-        parser = argparse.ArgumentParser()
-        parser.add_argument('--path', dest="myPath")
-        args = parser.parse_args()
-        input_dir = args.myPath
-        print(input_dir)
-        if os.path.exists(input_dir)!= True:
-            try_again = input("Dir not found. Try again? answer Y or N ")
-            if try_again.upper() == "Y":
-                continue
-            elif try_again.upper() == "N":
-                running = False
-                continue
-            else:
-                print("Invalid input")
-                running = False
-                continue
-        for _, _, file_names in os.walk(input_dir):
-            for file_inst in file_names:
-                if fnmatch.fnmatch(file_inst, 'MZ*'):
-                    print(file_inst)
-                else:
-                    continue
-        running = False
+PE_HEADER = 'MZ'
+
+
+def check_if_pe_file(file_path):
+    with open(file_path, 'rb') as file_handle:
+        header = file_handle.read(2)
+    return header == PE_HEADER
+
+
+def print_if_pe_file(real_path):
+    if check_if_pe_file(real_path):
+        print(real_path)
+
+
+def print_pe_files(input_dir):
+    if not os.path.exists(input_dir):
+        print("input dir doesn't exist")
+        return
+    for _, _, file_names in os.walk(input_dir):
+        for file_inst in file_names:
+            real_path = os.path.join(input_dir, file_inst)
+            print_if_pe_file(real_path)
+
+
+def get_arguments():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--path', dest="my_path")
+    return parser.parse_args()
+
+
+def main():
+    args = get_arguments()
+    print_pe_files(args.my_path)
 
 
 if __name__ == "__main__":
-    print_dir()
+    main()
+
+
 
 
